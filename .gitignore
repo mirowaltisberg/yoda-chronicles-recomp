@@ -10,3 +10,5 @@ tools/.venv/
 __pycache__/
 .DS_Store
 xcuserdata/
+ios/Yoda.xcodeproj/
+ios/YodaInfo.plist

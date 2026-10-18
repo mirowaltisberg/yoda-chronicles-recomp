@@ -1,0 +1,111 @@
+name: Yoda
+options:
+  bundleIdPrefix: ch.mirowaltisberg
+  deploymentTarget:
+    iOS: "26.0"
+settings:
+  base:
+    DEVELOPMENT_TEAM: 43DHLG947A
+    CODE_SIGN_STYLE: Automatic
+    GENERATE_INFOPLIST_FILE: YES
+    MARKETING_VERSION: "0.1"
+    CURRENT_PROJECT_VERSION: "1"
+    ARCHS: arm64
+    ONLY_ACTIVE_ARCH: NO
+    ENABLE_BITCODE: NO
+    # Unity's Trampoline is manual retain/release Objective-C (two files opt into ARC below).
+    CLANG_ENABLE_OBJC_ARC: NO
+    CLANG_CXX_LANGUAGE_STANDARD: gnu++11
+    GCC_C_LANGUAGE_STANDARD: gnu99
+    GCC_ENABLE_CPP_EXCEPTIONS: YES
+    GCC_ENABLE_CPP_RTTI: YES
+    GCC_PRECOMPILE_PREFIX_HEADER: YES
+    GCC_PREFIX_HEADER: "$(SRCROOT)/../build/xcode/Classes/iPhone_target_Prefix.pch"
+    GCC_PREPROCESSOR_DEFINITIONS: ["$(inherited)", "INIT_SCRIPTING_BACKEND=1", "GLES_SILENCE_DEPRECATION=1"]
+    GCC_OPTIMIZATION_LEVEL: "2"
+    HEADER_SEARCH_PATHS:
+      - "$(SRCROOT)/../build/xcode/Classes"
+      - "$(SRCROOT)/../build/xcode/Classes/Unity"
+      - "$(SRCROOT)/../build/xcode/Classes/UI"
+      - "$(SRCROOT)/../build/xcode/Classes/PluginBase"
+      - "$(SRCROOT)/../build/xcode/Libraries/libil2cpp/include"
+      - "$(SRCROOT)/../build/il2cppOutput"
+    # Order matters: the engine first, then the GNU libstdc++ subset it was built against.
+    OTHER_LDFLAGS:
+      - "$(SRCROOT)/../build/xcode/Libraries/libiPhone-lib.a"
+      - "$(SRCROOT)/../build/xcode/Libraries/libgnustdcxx.a"
+      - "-liconv"
+      - "-lz"
+    DEAD_CODE_STRIPPING: YES
+    WARNING_CFLAGS: ["-Wno-deprecated-declarations"]
+    INFOPLIST_KEY_UIStatusBarHidden: YES
+    INFOPLIST_KEY_UIRequiresFullScreen: YES
+    INFOPLIST_KEY_UILaunchScreen_Generation: YES
+    INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+    INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+    INFOPLIST_KEY_CFBundleDisplayName: "Yoda Chronicles"
+    INFOPLIST_KEY_UIViewControllerBasedStatusBarAppearance: NO
+targets:
+  # Simulator build: Unity's arm64 device objects carry no platform tag, the GNU libstdc++ subset is
+  # retagged for the Simulator (tools/make_gnustdcxx.sh iossim).
+  YodaSim:
+    type: application
+    platform: iOS
+    info:
+      path: YodaInfo.plist
+      properties:
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+          UISceneConfigurations:
+            UIWindowSceneSessionRoleApplication:
+              - UISceneConfigurationName: Default
+                UISceneDelegateClassName: YodaSceneDelegate
+    sources:
+      - path: ../build/xcode/Classes
+        excludes:
+          - "Native"
+          - "**/*.pch"
+          - "Unity/MetalHelper.mm"
+          - "Unity/CameraCapture.mm"
+          - "iPhone_Profiler.cpp"
+      - path: ../build/xcode/Classes/Unity/MetalHelper.mm
+        compilerFlags: ["-fobjc-arc"]
+      - path: ../build/xcode/Classes/Unity/CameraCapture.mm
+        compilerFlags: ["-fobjc-arc"]
+      - path: ../build/xcode/Classes/iPhone_Profiler.cpp
+      - path: ../build/il2cppOutput
+        includes: ["*.cpp"]
+        compilerFlags: ["-w", "-fno-strict-aliasing"]
+      - path: Shim
+        compilerFlags: ["-fobjc-arc"]
+      - path: ../build/Data
+        type: folder
+        buildPhase: resources
+    dependencies:
+      - sdk: UIKit.framework
+      - sdk: Foundation.framework
+      - sdk: OpenGLES.framework
+      - sdk: QuartzCore.framework
+      - sdk: OpenAL.framework
+      - sdk: AudioToolbox.framework
+      - sdk: AVFoundation.framework
+      - sdk: AVKit.framework
+      - sdk: CoreMedia.framework
+      - sdk: CoreVideo.framework
+      - sdk: CoreGraphics.framework
+      - sdk: CoreLocation.framework
+      - sdk: CoreMotion.framework
+      - sdk: CFNetwork.framework
+      - sdk: SystemConfiguration.framework
+      - sdk: Security.framework
+      - sdk: MediaPlayer.framework
+      - sdk: GameKit.framework
+        weak: true
+      - sdk: Metal.framework
+        weak: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: ch.mirowaltisberg.yodachronicles
+        PRODUCT_NAME: YodaChronicles
+        SUPPORTED_PLATFORMS: iphonesimulator
+        SDKROOT: iphoneos
