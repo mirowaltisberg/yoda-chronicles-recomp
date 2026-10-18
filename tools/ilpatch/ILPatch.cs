@@ -151,17 +151,54 @@ static class ILPatch
     }
 }
 
-// The Android-only code paths, replaced by the behaviour the game has when they are unavailable.
+// The Android-only code paths, replaced by the behaviour the game has on Android when everything it
+// checks for is present.
 static class Stubs
 {
-    // type full name -> method name -> replacement body kind
-    // "ret" = return default value (false / null / 0 / no-op), "true" = return true
-    static readonly Dictionary<string, Dictionary<string, string>> Bodies = new Dictionary<string, Dictionary<string, string>>();
+    // type full name -> method name -> replacement body: "ret" (default value / no-op), "true", or a
+    // custom IL emitter.
+    static readonly Dictionary<string, Dictionary<string, object>> Bodies = new Dictionary<string, Dictionary<string, object>>();
 
-    public static void Add(string type, string method, string body)
+    static Stubs()
     {
-        Dictionary<string, string> m;
-        if (!Bodies.TryGetValue(type, out m)) Bodies[type] = m = new Dictionary<string, string>();
+        // The Android build starts the game only through "running on Android and the OBB is present"
+        // (SendSignalsOnAwakeCheckPlatform.Start: otherwise it never signals the SceneLoader). On iOS the
+        // data is always complete, so the downloader reports exactly that. Callers: that class's Start and
+        // Update, and the PostFetchOBB coroutine.
+        Add("GooglePlayDownloader", "RunningOnAndroid", "true");
+        Add("GooglePlayDownloader", "GetExpansionFilePath", (Action<MethodDefinition, ILProcessor>)((md, il) =>
+        {
+            var dataPath = md.Module.Import(UnityEngineMethod(md.Module, "UnityEngine.Application", "get_dataPath"));
+            il.Emit(OpCodes.Call, dataPath);
+            il.Emit(OpCodes.Ret);
+        }));
+        Add("GooglePlayDownloader", "GetMainOBBPath", (Action<MethodDefinition, ILProcessor>)((md, il) =>
+        {
+            // String.Concat(string, string) from the game's own mscorlib (2.0.5.0), not the host's
+            var concat = md.Module.Import(md.Module.TypeSystem.String.Resolve().Methods.First(m =>
+                m.Name == "Concat" && m.Parameters.Count == 2 &&
+                m.Parameters.All(p => p.ParameterType.FullName == "System.String")));
+            il.Emit(OpCodes.Ldarg_0);
+            il.Emit(OpCodes.Ldstr, "/main.10.com.lego.starwars.theyodachronicles.obb");
+            il.Emit(OpCodes.Call, concat);
+            il.Emit(OpCodes.Ret);
+        }));
+        Add("GooglePlayDownloader", "GetPatchOBBPath", "ret");
+        Add("GooglePlayDownloader", "FetchOBB", "ret");
+        Add("GooglePlayDownloader", "populateOBBData", "ret");
+    }
+
+    static MethodReference UnityEngineMethod(ModuleDefinition mod, string type, string name)
+    {
+        var engineRef = mod.AssemblyReferences.First(a => a.Name == "UnityEngine");
+        var engine = mod.AssemblyResolver.Resolve(engineRef);
+        return engine.MainModule.GetType(type).Methods.First(m => m.Name == name);
+    }
+
+    public static void Add(string type, string method, object body)
+    {
+        Dictionary<string, object> m;
+        if (!Bodies.TryGetValue(type, out m)) Bodies[type] = m = new Dictionary<string, object>();
         m[method] = body;
     }
 
@@ -170,14 +207,27 @@ static class Stubs
         int n = 0;
         foreach (var t in mod.GetTypes())
         {
-            Dictionary<string, string> m;
+            Dictionary<string, object> m;
             if (!Bodies.TryGetValue(t.FullName, out m)) continue;
             foreach (var md in t.Methods)
             {
-                string kind;
+                object kind;
                 if (!md.HasBody || !m.TryGetValue(md.Name, out kind) && !m.TryGetValue("*", out kind)) continue;
                 if (md.IsConstructor) continue;
-                ReplaceBody(md, kind);
+                var emit = kind as Action<MethodDefinition, ILProcessor>;
+                if (emit != null)
+                {
+                    var body = md.Body;
+                    body.Instructions.Clear();
+                    body.ExceptionHandlers.Clear();
+                    body.Variables.Clear();
+                    emit(md, body.GetILProcessor());
+                }
+                else
+                {
+                    ReplaceBody(md, (string)kind);
+                }
+                Console.WriteLine("  stub {0}::{1}", t.FullName, md.Name);
                 n++;
             }
         }

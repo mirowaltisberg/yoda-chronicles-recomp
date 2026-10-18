@@ -17,6 +17,8 @@ IL2CPP="$U/Frameworks/il2cpp"
 SRC="$ROOT/input/x/apk/assets/bin/Data/Managed"
 B="$ROOT/build/managed"
 OUT="$ROOT/build/il2cppOutput"
+# generated into GEN, then synced by content into OUT so unchanged files keep their timestamps (incremental Xcode builds)
+GEN="$ROOT/build/il2cppOutput.new"
 
 "$ROOT/tools/ilpatch/build.sh" >/dev/null
 
@@ -37,17 +39,18 @@ mono "$IL2CPP/AssemblyPatcher/AssemblyPatcher.exe" -a "$M/mscorlib.unpatched.dll
 rm -f "$M/mscorlib.unpatched.dll"
 
 echo "== il2cpp"
-rm -rf "$OUT" && mkdir -p "$OUT"
+rm -rf "$GEN" && mkdir -p "$GEN" "$OUT"
 USER_ASMS=""
 for a in Assembly-CSharp-firstpass Assembly-CSharp P31RestKit P31MetroLocalytics UnityEngine.UI AndroidShim; do
     [ -f "$M/$a.dll" ] && USER_ASMS="${USER_ASMS:+$USER_ASMS,}$M/$a.dll"
 done
 mono "$IL2CPP/build/il2cpp.exe" --copy-level=None --emit-null-checks --enable-array-bounds-check \
     --extra-types.file="$IL2CPP/il2cpp_default_extra_types.txt" --assembly="$USER_ASMS" \
-    --generatedcppdir="$OUT" --builder=none 2>&1 | tee "$ROOT/build/il2cpp.log" | tail -20
+    --generatedcppdir="$GEN" --builder=none 2>&1 | tee "$ROOT/build/il2cpp.log" | tail -20
 
 echo "== icall registration"
 mono "$IOS/BuildTools/InternalCallRegistrationWriter/InternalCallRegistrationWriter.exe" \
-    -assembly="$M/UnityEngine.dll" -output="$OUT/UnityICallRegistration.cpp" 2>&1 | tail -5
-ls "$OUT" | head -20
+    -assembly="$M/UnityEngine.dll" -output="$GEN/UnityICallRegistration.cpp" 2>&1 | tail -5
+rsync -a --checksum --delete "$GEN/" "$OUT/" --itemize-changes | grep -c "^>f" | xargs echo "files changed:"
+rm -rf "$GEN"
 echo "$(ls "$OUT" | wc -l) files in $OUT"
