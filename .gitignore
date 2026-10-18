@@ -1,0 +1,12 @@
+# Personal game copies and anything derived from them never leave this machine
+input/
+gen/
+build/
+*.ipa
+*.apk
+*.obb
+*.so
+tools/.venv/
+__pycache__/
+.DS_Store
+xcuserdata/
