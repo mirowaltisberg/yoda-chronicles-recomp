@@ -25,7 +25,16 @@ if [ -s "$ROOT/ios/trampoline.patch" ]; then
     (cd "$X" && patch -s -p1 < "$ROOT/ios/trampoline.patch")
 fi
 cp -R "$IOS/il2cpp/libil2cpp" "$X/Libraries/libil2cpp"
-ln -sf "$E/libiPhone-lib-il2cpp-arm64.a" "$X/Libraries/libiPhone-lib.a"
+if [ "$PLATFORM" = iossim ]; then
+    # A few 2015 objects say "iOS device"; untag them like the rest so the Simulator link accepts them.
+    [ -f "$E/libiPhone-lib-il2cpp-arm64-sim.a" ] || {
+        "$ROOT/tools/.venv/bin/python" -I "$ROOT/tools/arsim.py" "$E/libiPhone-lib-il2cpp-arm64.a" "$E/libiPhone-lib-il2cpp-arm64-sim.a"
+        ranlib "$E/libiPhone-lib-il2cpp-arm64-sim.a"
+    }
+    ln -sf "$E/libiPhone-lib-il2cpp-arm64-sim.a" "$X/Libraries/libiPhone-lib.a"
+else
+    ln -sf "$E/libiPhone-lib-il2cpp-arm64.a" "$X/Libraries/libiPhone-lib.a"
+fi
 ln -sf "$E/libgnustdcxx-$PLATFORM.a" "$X/Libraries/libgnustdcxx.a"
 
 # RegisterClasses.cpp: every class the engine library contains (the editor lists the used ones when stripping)

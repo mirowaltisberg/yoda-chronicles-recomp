@@ -15,6 +15,8 @@ G=/opt/homebrew/opt/gcc/lib/gcc/current
 W="$ROOT/build/engine/gnustdcxx-$PLATFORM"
 OUT="$ROOT/build/engine/libgnustdcxx-$PLATFORM.a"
 KEEP_FROM_SUPC="hash_bytes.o atomicity.o"
+# Built on GNU-internal typeinfo classes; ios/Shim/GnuRuntime.cpp provides its two throw helpers.
+EXCLUDE="cxx11-ios_failure.o"
 
 rm -rf "$W" && mkdir -p "$W"
 cd "$W"
@@ -23,7 +25,7 @@ for m in $(ar -t "$G/libsupc++.a"); do
     case " $KEEP_FROM_SUPC " in *" $m "*) continue ;; esac
     rm -f "$m"
 done
-rm -f __.SYMDEF "__.SYMDEF SORTED"
+rm -f __.SYMDEF "__.SYMDEF SORTED" $EXCLUDE
 "$ROOT/tools/.venv/bin/python" -I "$ROOT/tools/machotag.py" "$PLATFORM" 26.0 ./*.o
 rm -f "$OUT"
 libtool -static -no_warning_for_no_symbols -o "$OUT" ./*.o
