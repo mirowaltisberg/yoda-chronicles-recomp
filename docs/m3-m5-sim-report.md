@@ -17,8 +17,8 @@ Yoda and his squad, the camera follows, timer and stud counter run.
 | Touch | developer taps through the engine's own touch entry points; UIKit hit-testing at the tap points reaches `UnityView`, so real touches take the same path |
 | Movies | `IntroMovie.mp4` plays through AVPlayer and ends; Unity resumes |
 | Audio | FMOD streams and mixes the menu music (MP3 via AudioQueue), RemoteIO output unit running; **not checked by ear** |
-| Saves | a fresh save is created ("No save data found for section …"); persistence across launches **not yet checked** |
-| iPhone | not tested yet (see M6) |
+| Saves | persist across launches: `menuData` and `levelProgression` are saved (PlayerPrefs, `Library/Preferences/ch.mirowaltisberg.yodachronicles.plist`) and found again after a relaunch |
+| iPhone | `YodaPhone` compiles and links (Release, unsigned, arm64, platform iOS); not signed, installed or run yet |
 
 ## Findings, in the order they blocked
 
@@ -59,6 +59,6 @@ Unattended testing (developer only, inactive unless set):
 
 ## Open
 
-- Audio by ear; save persistence across launches; a full level to the end; other movies.
+- Audio by ear; a full level to the end; other movies.
 - iPhone 17 device build, install and performance (M6). The Simulator's 1× rendering is Simulator-only.
 - "No receiver of signal OnSignal" warnings from the game's own GUI (also present on Android, harmless so far).
