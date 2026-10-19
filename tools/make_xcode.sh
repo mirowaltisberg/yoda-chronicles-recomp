@@ -4,19 +4,23 @@
 #
 #   Classes/            Unity's Trampoline sources, pristine copy + ios/trampoline.patch
 #   Classes/Register*   the files the editor generates (all engine classes registered, i.e. no stripping)
-#   Libraries/          libil2cpp headers, the arm64 IL2CPP engine library, GNU libstdc++ subset
+#   Libraries/          libil2cpp headers (engine and GNU libstdc++ variants live in build/engine)
 #
 # The IL2CPP output (build/il2cppOutput) and the data (build/Data) are referenced in place.
-# Usage: tools/make_xcode.sh iossim|ios
+# Usage: tools/make_xcode.sh   (prepares both the Simulator and the iPhone library variants)
 set -e
-PLATFORM=${1:-iossim}
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 IOS="$ROOT/build/unity-4.6.6/pkg/Unity.pkg/Payload/Unity/Unity.app/Contents/PlaybackEngines/iossupport"
 E="$ROOT/build/engine"
 X="$ROOT/build/xcode"
 
 [ -f "$E/libiPhone-lib-il2cpp-arm64.a" ] || lipo "$IOS/Trampoline/Libraries/libiPhone-lib-il2cpp.a" -thin arm64 -output "$E/libiPhone-lib-il2cpp-arm64.a"
-[ -f "$E/libgnustdcxx-$PLATFORM.a" ] || "$ROOT/tools/make_gnustdcxx.sh" "$PLATFORM"
+for p in iossim ios; do [ -f "$E/libgnustdcxx-$p.a" ] || "$ROOT/tools/make_gnustdcxx.sh" "$p"; done
+# A few 2015 objects say "iOS device"; untagged like the rest, the Simulator link accepts them.
+[ -f "$E/libiPhone-lib-il2cpp-arm64-sim.a" ] || {
+    "$ROOT/tools/.venv/bin/python" -I "$ROOT/tools/arsim.py" "$E/libiPhone-lib-il2cpp-arm64.a" "$E/libiPhone-lib-il2cpp-arm64-sim.a"
+    ranlib "$E/libiPhone-lib-il2cpp-arm64-sim.a"
+}
 
 rm -rf "$X/Classes" "$X/Libraries"
 mkdir -p "$X/Libraries"
@@ -25,17 +29,6 @@ if [ -s "$ROOT/ios/trampoline.patch" ]; then
     (cd "$X" && patch -s -p1 < "$ROOT/ios/trampoline.patch")
 fi
 cp -R "$IOS/il2cpp/libil2cpp" "$X/Libraries/libil2cpp"
-if [ "$PLATFORM" = iossim ]; then
-    # A few 2015 objects say "iOS device"; untag them like the rest so the Simulator link accepts them.
-    [ -f "$E/libiPhone-lib-il2cpp-arm64-sim.a" ] || {
-        "$ROOT/tools/.venv/bin/python" -I "$ROOT/tools/arsim.py" "$E/libiPhone-lib-il2cpp-arm64.a" "$E/libiPhone-lib-il2cpp-arm64-sim.a"
-        ranlib "$E/libiPhone-lib-il2cpp-arm64-sim.a"
-    }
-    ln -sf "$E/libiPhone-lib-il2cpp-arm64-sim.a" "$X/Libraries/libiPhone-lib.a"
-else
-    ln -sf "$E/libiPhone-lib-il2cpp-arm64.a" "$X/Libraries/libiPhone-lib.a"
-fi
-ln -sf "$E/libgnustdcxx-$PLATFORM.a" "$X/Libraries/libgnustdcxx.a"
 
 # RegisterClasses.cpp: every class the engine library contains (the editor lists the used ones when stripping)
 {
@@ -56,4 +49,4 @@ printf '#include "RegisterMonoModules.h"\nvoid RegisterMonoModules() {}\n' > "$X
 printf '#pragma once\nvoid RegisterFeatures();\n' > "$X/Classes/RegisterFeatures.h"
 printf '#include "RegisterFeatures.h"\nextern bool gEnableGyroscope;\nvoid RegisterFeatures() { gEnableGyroscope = false; }\n' > "$X/Classes/RegisterFeatures.cpp"
 
-echo "build/xcode ready for $PLATFORM: $(grep -c RegisterClass_ "$X/Classes/RegisterClasses.cpp") classes registered"
+echo "build/xcode ready: $(grep -c RegisterClass_ "$X/Classes/RegisterClasses.cpp") classes registered"

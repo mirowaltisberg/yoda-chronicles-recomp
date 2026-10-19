@@ -30,12 +30,6 @@ settings:
       - "$(SRCROOT)/../build/xcode/Classes/PluginBase"
       - "$(SRCROOT)/../build/xcode/Libraries/libil2cpp/include"
       - "$(SRCROOT)/../build/il2cppOutput"
-    # Order matters: the engine first, then the GNU libstdc++ subset it was built against.
-    OTHER_LDFLAGS:
-      - "$(SRCROOT)/../build/xcode/Libraries/libiPhone-lib.a"
-      - "$(SRCROOT)/../build/xcode/Libraries/libgnustdcxx.a"
-      - "-liconv"
-      - "-lz"
     DEAD_CODE_STRIPPING: YES
     WARNING_CFLAGS: ["-Wno-deprecated-declarations"]
     # 2015 clang only warned about narrowing in initializer lists; the Trampoline relies on that.
@@ -47,10 +41,8 @@ settings:
     INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
     INFOPLIST_KEY_CFBundleDisplayName: "Yoda Chronicles"
     INFOPLIST_KEY_UIViewControllerBasedStatusBarAppearance: NO
-targets:
-  # Simulator build: Unity's arm64 device objects carry no platform tag, the GNU libstdc++ subset is
-  # retagged for the Simulator (tools/make_gnustdcxx.sh iossim).
-  YodaSim:
+targetTemplates:
+  YodaApp:
     type: application
     platform: iOS
     info:
@@ -105,9 +97,33 @@ targets:
         weak: true
       - sdk: Metal.framework
         weak: true
+targets:
+  # Simulator: Unity's arm64 objects untagged for the Simulator (tools/arsim.py), GNU libstdc++ subset
+  # retagged for it (tools/make_gnustdcxx.sh iossim). Order matters: engine first, then libstdc++.
+  YodaSim:
+    templates: [YodaApp]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: ch.mirowaltisberg.yodachronicles
         PRODUCT_NAME: YodaChronicles
         SUPPORTED_PLATFORMS: iphonesimulator
         SDKROOT: iphoneos
+        OTHER_LDFLAGS:
+          - "$(SRCROOT)/../build/engine/libiPhone-lib-il2cpp-arm64-sim.a"
+          - "$(SRCROOT)/../build/engine/libgnustdcxx-iossim.a"
+          - "-liconv"
+          - "-lz"
+  # iPhone: Unity's original arm64 engine slice, GNU libstdc++ subset retagged for iOS.
+  YodaPhone:
+    templates: [YodaApp]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: ch.mirowaltisberg.yodachronicles
+        PRODUCT_NAME: YodaChronicles
+        SUPPORTED_PLATFORMS: iphoneos
+        SDKROOT: iphoneos
+        OTHER_LDFLAGS:
+          - "$(SRCROOT)/../build/engine/libiPhone-lib-il2cpp-arm64.a"
+          - "$(SRCROOT)/../build/engine/libgnustdcxx-ios.a"
+          - "-liconv"
+          - "-lz"

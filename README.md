@@ -13,3 +13,9 @@ Anything generated from them (translated code, converted data, builds) goes to `
 
 Inputs and their hashes: `docs/inputs.md`
 Design: `docs/superpowers/specs/`
+Status, findings and how to build/run: `docs/m3-m5-sim-report.md`
+
+## Status (19.10.2026)
+
+Runs in the iOS 27 Simulator: intro movie, side selection, menus, Coruscant mission 1 playable with touch.
+iPhone build compiles; installing it on the phone is the next step.

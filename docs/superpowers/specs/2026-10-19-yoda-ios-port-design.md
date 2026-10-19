@@ -80,15 +80,18 @@ time. The faithful analog of "run the original code, translated" is the path Uni
 
 ## Milestones
 
-| # | Result | Where |
-|---|---|---|
-| M0 | Inputs hashed, census (IL, data, engine symbols), Unity 4.6.6 iOS support unpacked | Mac |
-| M1 | Managed pipeline: shim + IL2CPP output | Mac |
-| M2 | Simulator app links (engine + IL2CPP code + GNU libstdc++ + Trampoline) | Mac |
-| M3 | Simulator: first frames (splash, LEGO logo, intro movie) | Simulator |
-| M4 | Simulator: menus, side selection, a level playable with sound and touch | Simulator |
-| M5 | Device build with the dev account (libstdc++ retagged for iOS) | iPhone 17 |
-| M6 | Polish: safe areas, save persistence, cutscenes on modern AVKit, app icon, credit | iPhone 17 |
+| # | Result | Where | Status (19.10.2026) |
+|---|---|---|---|
+| M0 | Inputs hashed, census (IL, data, engine symbols), Unity 4.6.6 iOS support unpacked | Mac | done |
+| M1 | Managed pipeline: shim + IL2CPP output | Mac | done |
+| M2 | Simulator app links (engine + IL2CPP code + GNU libstdc++ + Trampoline) | Mac | done |
+| M3 | Simulator: first frames (splash, LEGO logo, intro movie) | Simulator | done |
+| M4 | Simulator: menus, side selection, a level playable with sound and touch | Simulator | done (sound not checked by ear) |
+| M5 | Device build with the dev account (libstdc++ retagged for iOS) | iPhone 17 | builds unsigned; install open |
+| M6 | Polish: safe areas, save persistence, app icon, credit | iPhone 17 | open |
+
+Report: `docs/m3-m5-sim-report.md`. The open questions below were all resolved there (data retag to
+iPhone/4.6.6f2, ATC/DXT textures converted to RGBA32, cutscenes on AVPlayer, Prime31/Flurry quiet).
 
 ## Open questions left to the builder
 
