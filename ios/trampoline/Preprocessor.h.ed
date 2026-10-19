@@ -1,0 +1,6 @@
+65c
+// Modern SDKs ship Metal for the Simulator too (the fallback declarations below would clash).
+#if defined(__IPHONE_8_0)
+.
+w
+q

@@ -1,0 +1,196 @@
+43,48c
+	static bool _ClassInited = false;
+	if(!_ClassInited)
+	{
+		Class vcClass = [UIViewController class];
+		SEL present = @selector(presentMoviePlayerViewControllerAnimated:);
+		SEL dismiss = @selector(dismissMoviePlayerViewControllerAnimated);
+		if(!class_addMethod(vcClass, present, (IMP)YodaPresentMovie, "v@:@"))
+			method_setImplementation(class_getInstanceMethod(vcClass, present), (IMP)YodaPresentMovie);
+		if(!class_addMethod(vcClass, dismiss, (IMP)YodaDismissMovie, "v@:"))
+			method_setImplementation(class_getInstanceMethod(vcClass, dismiss), (IMP)YodaDismissMovie);
+		_ClassInited = true;
+	}
+.
+40a
+// The engine presents and dismisses through MediaPlayer's UIViewController category; route both to
+// plain full-screen modal presentation of this controller.
+static void YodaPresentMovie(UIViewController* self_, SEL _cmd, UIViewController* vc)
+{
+	NSLog(@"[yoda] present movie from %@", self_);
+	[self_ presentViewController:vc animated:NO completion:nil];
+}
+static void YodaDismissMovie(UIViewController* self_, SEL _cmd)
+{
+	NSLog(@"[yoda] dismiss movie");
+	[self_ dismissViewControllerAnimated:NO completion:nil];
+}
+
+.
+38c
+	UnityPause(false);
+.
+34a
+- (BOOL)prefersStatusBarHidden				{ return YES; }
+- (BOOL)prefersHomeIndicatorAutoHidden		{ return YES; }
+- (UIInterfaceOrientationMask)supportedInterfaceOrientations { return UIInterfaceOrientationMaskLandscape; }
+
+// MPMoviePlayerController autoplays (shouldAutoplay = YES); the engine never calls play itself.
+- (void)viewDidAppear:(BOOL)animated
+{
+	[super viewDidAppear:animated];
+	// developer switch for unattended testing: YODA_SKIP_MOVIES=1 ends every movie at once
+	if([[NSProcessInfo processInfo].environment[@"YODA_SKIP_MOVIES"] length] > 0)
+	{
+		[_moviePlayer stop];
+		return;
+	}
+	[_moviePlayer play];
+}
+
+.
+24,32c
+	UIView* root = [[UIView alloc] initWithFrame:[UIScreen mainScreen].bounds];
+	root.backgroundColor = [UIColor blackColor];
+	UIView* bg = _moviePlayer.backgroundView;
+	UIView* video = [_moviePlayer view];
+	bg.frame = video.frame = root.bounds;
+	bg.autoresizingMask = video.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+	[root addSubview:bg];
+	[root addSubview:video];
+	self.view = root;
+	[root release];
+.
+22c
+- (YodaMoviePlayer*)moviePlayer	{ return _moviePlayer; }
+
+- (void)loadView
+.
+18,19c
+	[_moviePlayer release];
+	[super dealloc];
+.
+16c
+- (void)dealloc
+.
+13c
+	if((self = [super initWithNibName:nil bundle:nil]))
+	{
+		NSLog(@"[yoda] movie view controller for %@", url);
+		_moviePlayer = [[YodaMoviePlayer alloc] initWithURL:url];
+		self.modalPresentationStyle = UIModalPresentationFullScreen;
+	}
+	return self;
+.
+11c
+- (id)initWithContentURL:(NSURL*)url
+.
+9a
+{
+	YodaMoviePlayer* _moviePlayer;
+}
+.
+8a
+// Yoda port: AVPlayer-based replacement for the 2015 MPMoviePlayerViewController subclass (see header).
+// Manual retain/release, like the rest of the Trampoline.
+
+@interface YodaMoviePlayerView : UIView
+@end
+@implementation YodaMoviePlayerView
++ (Class)layerClass { return [AVPlayerLayer class]; }
+@end
+
+@interface YodaMoviePlayer ()
+{
+	AVPlayer*				_player;
+	YodaMoviePlayerView*	_view;
+	UIView*					_backgroundView;
+	BOOL					_finished;
+}
+- (id)initWithURL:(NSURL*)url;
+- (UIView*)view;
+@end
+
+@implementation YodaMoviePlayer
+
+- (id)initWithURL:(NSURL*)url
+{
+	if((self = [super init]))
+	{
+		_player = [[AVPlayer alloc] initWithURL:url];
+		_backgroundView = [[UIView alloc] initWithFrame:CGRectZero];
+		_backgroundView.backgroundColor = [UIColor blackColor];
+		_view = [[YodaMoviePlayerView alloc] initWithFrame:CGRectZero];
+		_view.backgroundColor = [UIColor clearColor];
+		((AVPlayerLayer*)_view.layer).player = _player;
+		((AVPlayerLayer*)_view.layer).videoGravity = AVLayerVideoGravityResizeAspect;
+		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(itemDidEnd:)
+			name:AVPlayerItemDidPlayToEndTimeNotification object:_player.currentItem];
+		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(itemDidFail:)
+			name:AVPlayerItemFailedToPlayToEndTimeNotification object:_player.currentItem];
+	}
+	return self;
+}
+
+- (void)dealloc
+{
+	[[NSNotificationCenter defaultCenter] removeObserver:self];
+	[_player pause];
+	[_player release];
+	[_view release];
+	[_backgroundView release];
+	[super dealloc];
+}
+
+- (UIView*)view				{ return _view; }
+- (UIView*)backgroundView	{ return _backgroundView; }
+
+- (void)setControlStyle:(NSInteger)style	{ NSLog(@"[yoda] movie setControlStyle %ld", (long)style); }
+
+- (void)setScalingMode:(NSInteger)mode
+{
+	// MPMovieScalingModeNone/AspectFit = 0/1, AspectFill = 2, Fill = 3
+	NSString* gravity = mode == 2 ? AVLayerVideoGravityResizeAspectFill
+					  : mode == 3 ? AVLayerVideoGravityResize : AVLayerVideoGravityResizeAspect;
+	((AVPlayerLayer*)_view.layer).videoGravity = gravity;
+}
+
+- (void)play
+{
+	NSLog(@"[yoda] movie play (status %ld, item %ld)", (long)_player.status, (long)_player.currentItem.status);
+	[_player play];
+}
+- (void)pause	{ NSLog(@"[yoda] movie pause"); [_player pause]; }
+
+- (void)finishWithReason:(NSInteger)reason
+{
+	NSLog(@"[yoda] movie finish, reason %ld", (long)reason);
+	if(_finished)
+		return;
+	_finished = YES;
+	[_player pause];
+	NSDictionary* info = @{ MPMoviePlayerPlaybackDidFinishReasonUserInfoKey: @(reason) };
+	[[NSNotificationCenter defaultCenter] postNotificationName:MPMoviePlayerPlaybackDidFinishNotification
+		object:self userInfo:info];
+}
+
+// MPMoviePlayerController posts "did finish" when stopped; the engine's tap-to-skip relies on it.
+- (void)stop						{ [self finishWithReason:MPMovieFinishReasonUserExited]; }
+- (void)itemDidEnd:(NSNotification*)n	{ [self finishWithReason:MPMovieFinishReasonPlaybackEnded]; }
+- (void)itemDidFail:(NSNotification*)n
+{
+	NSLog(@"[yoda] movie failed: %@", n.userInfo);
+	[self finishWithReason:MPMovieFinishReasonPlaybackError];
+}
+
+@end
+
+
+.
+7a
+#import <AVFoundation/AVFoundation.h>
+#import <objc/runtime.h>
+.
+1d
+w
+q

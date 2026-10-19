@@ -1,0 +1,22 @@
+9c
+@interface UnityVideoViewController : UIViewController
+- (id)initWithContentURL:(NSURL*)url;
+- (YodaMoviePlayer*)moviePlayer;
+.
+7a
+// Yoda port: Unity 4.6's engine plays Handheld.PlayFullScreenMovie through this class, written in 2015
+// as an MPMoviePlayerViewController subclass. On iOS 27 that player shows one frame and never finishes.
+// The class keeps the interface the engine uses (initWithContentURL:, moviePlayer with backgroundView /
+// controlStyle / scalingMode / play / pause / stop, MPMoviePlayerPlaybackDidFinishNotification) and plays
+// with AVPlayer instead.
+@interface YodaMoviePlayer : NSObject
+@property (nonatomic, readonly) UIView* backgroundView;
+- (void)setControlStyle:(NSInteger)style;
+- (void)setScalingMode:(NSInteger)mode;
+- (void)play;
+- (void)pause;
+- (void)stop;
+@end
+.
+w
+q

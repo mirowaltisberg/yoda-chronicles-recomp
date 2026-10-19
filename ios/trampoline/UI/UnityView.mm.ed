@@ -1,0 +1,8 @@
+143c
+			(int)requestedW, (int)requestedH,
+.
+25c
+	UnityReportResizeView(renderSize.width, renderSize.height, ConvertToUnityScreenOrientation((UIInterfaceOrientation)self.contentOrientation, 0));
+.
+w
+q

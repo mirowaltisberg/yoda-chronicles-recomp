@@ -1,0 +1,6 @@
+189c
+	// Yoda port: the game data (Android build) has GLES2/GLES3 shader programs only, no Metal ones.
+	const bool	canSupportMetal = false;
+.
+w
+q

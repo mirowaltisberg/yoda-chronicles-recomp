@@ -1,0 +1,6 @@
+37a
+// Yoda port: installs a controller under the permanent root container (UnityAppController.mm)
+- (void)transitionToViewController:(UIViewController*)vc;
+.
+w
+q

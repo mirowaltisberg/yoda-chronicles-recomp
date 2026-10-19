@@ -1,0 +1,6 @@
+60c
+// Only the 2015 i386 Simulator needed these $UNIX2003 aliases.
+#if TARGET_IPHONE_SIMULATOR && defined(__i386__)
+.
+w
+q
