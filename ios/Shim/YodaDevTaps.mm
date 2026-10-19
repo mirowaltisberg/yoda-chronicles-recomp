@@ -90,6 +90,11 @@ static void Schedule(double at, dispatch_block_t block)
             CGPoint p = ToView(p0);
             touch.loc = p;
             NSLog(@"[yoda] dev tap at %.2f,%.2f (%.0f,%.0f)", p0.x, p0.y, p.x, p.y);
+            // would a real touch at this point reach Unity's view through UIKit hit-testing?
+            UIView* gl = UnityGetGLView();
+            UIView* hit = [gl.window hitTest:[gl convertPoint:p toView:gl.window] withEvent:nil];
+            NSLog(@"[yoda] hit-test -> %@, reaches Unity view: %s", NSStringFromClass([hit class]),
+                  (hit == gl || [hit isDescendantOfView:gl]) ? "yes" : "NO");
             Send(touch, UITouchPhaseBegan, p);
         });
         const int steps = ends.count > 1 ? 10 : 0;
