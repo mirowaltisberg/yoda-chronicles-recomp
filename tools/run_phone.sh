@@ -1,7 +1,7 @@
 #!/bin/sh
 # Build (signed, Release), install and launch the game on a connected iPhone; console -> build/run-phone.log.
 #   tools/run_phone.sh [device id]   (default: the first paired physical iPhone)
-#   tools/run_phone.sh [device id] --no-build
+#   tools/run_phone.sh [device id] --no-build | --no-launch
 # The phone must be unlocked to launch; while it is locked (or briefly unreachable) the launch is retried.
 set -e
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -10,7 +10,7 @@ DEV=${1:-$(xcrun devicectl list devices 2>/dev/null | awk '/physical/ && /iPhone
 APP="$ROOT/build/dd-phone/Build/Products/Release-iphoneos/YodaChronicles.app"
 LOG="$ROOT/build/run-phone.log"
 
-if [ "$2" != "--no-build" ]; then
+if [ "$2" != "--no-build" ]; then  # --no-launch still builds
     xcodebuild -project "$ROOT/ios/Yoda.xcodeproj" -scheme YodaPhone -configuration Release -destination "id=$DEV" \
         -derivedDataPath "$ROOT/build/dd-phone" -allowProvisioningUpdates build > "$ROOT/build/xcodebuild-phone.log" 2>&1 \
         || { grep -E "error:|Undefined" "$ROOT/build/xcodebuild-phone.log" | head -20; exit 1; }
@@ -21,6 +21,7 @@ for i in 1 2 3; do
     echo "install attempt $i failed, retrying"; sleep 3
 done
 grep -q "App installed" "$ROOT/build/install.log" || { tail -5 "$ROOT/build/install.log"; exit 1; }
+case "$2" in --no-launch) echo "installed on $DEV"; exit 0 ;; esac
 echo "installed on $DEV; launching (unlock the phone if it is locked)"
 
 for i in $(seq 1 120); do

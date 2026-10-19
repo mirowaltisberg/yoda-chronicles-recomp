@@ -10,7 +10,7 @@ PID=$!
 t=0
 while [ $t -lt "$TOTAL" ]; do
     sleep "$STEP"; t=$((t + STEP))
-    xcrun simctl io "$UDID" screenshot "$ROOT/build/shots/t$(printf %03d $t).png" >/dev/null 2>&1
+    xcrun simctl io "$UDID" screenshot --mask=black "$ROOT/build/shots/t$(printf %03d $t).png" >/dev/null 2>&1
 done
 kill $PID 2>/dev/null
 ls "$ROOT/build/shots"
