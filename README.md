@@ -115,7 +115,7 @@ The technical report covers every step, with the problems found on the way and t
 |---|---|
 | `tools/` | the build pipeline: C# patching and IL2CPP, data conversion, Xcode project assembly, run scripts |
 | `ios/` | Xcode project definition, app shell additions (`Shim/`), changes to Unity's app shell (`trampoline/`) |
-| `docs/` | technical report, design document, input hashes, screenshots |
+| `docs/` | [technical report](docs/m3-m5-sim-report.md), [design](docs/design.md), [input hashes](docs/inputs.md), screenshots |
 
 ## Legal
 
@@ -127,7 +127,6 @@ and Unity is a trademark of Unity Technologies.
 
 ## Credits
 
-Made by **Miró Waltisberg**, with [Claude Code](https://claude.com/claude-code) as pair programmer.
-Code under the [MIT license](LICENSE).
+Made by **Miró Waltisberg**. Code under the [MIT license](LICENSE).
 
 Also by Miró: [**Ninjago Tournament for iOS**](https://github.com/mirowaltisberg/ninjago-recomp).
