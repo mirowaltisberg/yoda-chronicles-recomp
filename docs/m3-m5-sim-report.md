@@ -44,7 +44,7 @@ dropped with "Connection invalid" and succeeded on retry.
 |---|---|---|
 | `il2cpp.exe` NullReferenceException | assemblies are passed as `--assembly=a,b`, not positionally | `tools/build_managed.sh` |
 | `__declspec(noreturn)` errors | 2015 IL2CPP headers, modern clang | `-fdeclspec` for the generated code |
-| Trampoline compile errors (iAd, Metal fallback types, enum casts, narrowing) | iOS 27 SDK and modern clang | `ios/trampoline.patch`, `-Wno-c++11-narrowing` |
+| Trampoline compile errors (iAd, Metal fallback types, enum casts, narrowing) | iOS 27 SDK and modern clang | `ios/trampoline/` (ed scripts), `-Wno-c++11-narrowing` |
 | GNU `std::string`/iostream symbols undefined (98) | engine built against Apple's GCC 4.2 libstdc++ | GCC 16 `libstdc++.a` without `libsupc++` members, retagged (`tools/make_gnustdcxx.sh`); `ios/Shim/GnuBridge.mm`, `GnuRuntime.cpp` |
 | "linking in object file built for 'iOS'" | 175 engine objects carry `LC_VERSION_MIN_IPHONEOS` | removed in place for the Simulator archive (`tools/arsim.py`) |
 | "File's Build target is: 13" | data says Android | header target → 9 (`tools/retarget_data.py`) |

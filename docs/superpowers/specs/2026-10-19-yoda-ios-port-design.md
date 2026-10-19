@@ -14,7 +14,7 @@ cutscenes and touch controls; progress persists.
 ## Anti-goals (unchanged from Ninjago)
 
 - No redistribution: no game code, game data, Unity code or anything generated from them goes to git.
-  The repository holds only our tooling, our shims and a patch against Unity's Trampoline.
+  The repository holds only our tooling, our shims and additions-only edit scripts for Unity's Trampoline.
 - No reimplementation "by eye": the original C# and data run, translated.
 - No JIT on the phone.
 
@@ -72,7 +72,7 @@ time. The faithful analog of "run the original code, translated" is the path Uni
  ─────────────────                     ───────────────────────────────            ─────────
  Managed/*.dll ── ILPatch + shim ──▶  AssemblyPatcher ─▶ il2cpp.exe ─▶ build/il2cppOutput (C++)
  Data + OBB    ── make_data.sh ────▶  build/Data (iOS layout)
-                                      Trampoline/Classes ── ios/trampoline.patch ─▶ build/xcode/Classes
+                                      Trampoline/Classes ── ios/trampoline/*.ed ─▶ build/xcode/Classes
                                       libiPhone-lib-il2cpp.a (arm64)            ios/Shim (scene, GNU bridge)
  GCC libstdc++.a ── make_gnustdcxx.sh (filter + retag) ─▶ libgnustdcxx.a
                                       └──────────── ios/project.yml (xcodegen) ──▶ YodaChronicles.app
