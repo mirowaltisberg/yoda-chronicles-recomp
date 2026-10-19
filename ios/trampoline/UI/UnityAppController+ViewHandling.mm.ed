@@ -1,0 +1,6 @@
+136,139c
+	// UI hierarchy (Yoda port: through the permanent root container, see transitionToViewController:)
+	[self transitionToViewController:_rootController];
+.
+w
+q

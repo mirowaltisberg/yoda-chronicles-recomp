@@ -1,0 +1,5 @@
+289c
+        AVPlayerStatus status = (AVPlayerStatus)[[change objectForKey:NSKeyValueChangeNewKey] integerValue];
+.
+w
+q

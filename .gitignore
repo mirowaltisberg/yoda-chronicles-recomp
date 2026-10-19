@@ -2,6 +2,10 @@
 input/
 gen/
 build/
+# worktrees link these to the main checkout
+/input
+/build
+/tools/.venv
 *.ipa
 *.apk
 *.obb

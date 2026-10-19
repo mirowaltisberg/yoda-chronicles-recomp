@@ -1,4 +1,4 @@
-# M0–M5 report: the game runs in the iOS 27 Simulator (19.10.2026)
+# M0–M6 report: the game runs in the iOS 27 Simulator and on the iPhone 17 (19.10.2026)
 
 ## Result
 
@@ -18,7 +18,25 @@ Yoda and his squad, the camera follows, timer and stud counter run.
 | Movies | `IntroMovie.mp4` plays through AVPlayer and ends; Unity resumes |
 | Audio | FMOD streams and mixes the menu music (MP3 via AudioQueue), RemoteIO output unit running; **not checked by ear** |
 | Saves | persist across launches: `menuData` and `levelProgression` are saved (PlayerPrefs, `Library/Preferences/ch.mirowaltisberg.yodachronicles.plist`) and found again after a relaunch |
-| iPhone | `YodaPhone` compiles and links (Release, unsigned, arm64, platform iOS); not signed, installed or run yet |
+| iPhone | runs on Miró's iPhone 17 (iOS 27): see "On the iPhone" below |
+
+## On the iPhone (M6, 19.10.2026 morning)
+
+`tools/run_phone.sh` (signed with the team's wildcard development profile, no new App ID needed).
+
+| Check | Result |
+|---|---|
+| Renderer | Apple A19 GPU, "OpenGL ES 3.0 Metal", native 2622×1206 |
+| Start-up | engine up in about 1 s, scene `Main` loaded about 0.5 s later |
+| Intro movie | plays to the end (AVPlayer replacement) |
+| Touch | real finger taps: Select Side → Jedi → Main Menu → Planet → Mission → Brief |
+| Gameplay | Coruscant mission 1 played to the **Win** screen (unit build screen and map used on the way); mission 2 started |
+| Errors | none in the console: no exceptions, no memory warnings |
+| Screen edges | checked against the iPhone 17 display mask (`simctl io screenshot --mask=black`, now used by `watch_sim.sh`): HUD (minimap, timer, pause, studs) and all menu buttons sit inside the rounded corners; the Dynamic Island only covers scenery. No layout change needed |
+| App icon | the original App Store artwork from the user's IPA, upscaled to 1024×1024 at build time (`make_xcode.sh`), not committed |
+
+Notes: launching from the Mac needs the phone unlocked (`run_phone.sh` retries). The first install once
+dropped with "Connection invalid" and succeeded on retry.
 
 ## Findings, in the order they blocked
 
@@ -26,7 +44,7 @@ Yoda and his squad, the camera follows, timer and stud counter run.
 |---|---|---|
 | `il2cpp.exe` NullReferenceException | assemblies are passed as `--assembly=a,b`, not positionally | `tools/build_managed.sh` |
 | `__declspec(noreturn)` errors | 2015 IL2CPP headers, modern clang | `-fdeclspec` for the generated code |
-| Trampoline compile errors (iAd, Metal fallback types, enum casts, narrowing) | iOS 27 SDK and modern clang | `ios/trampoline.patch`, `-Wno-c++11-narrowing` |
+| Trampoline compile errors (iAd, Metal fallback types, enum casts, narrowing) | iOS 27 SDK and modern clang | `ios/trampoline/` (ed scripts), `-Wno-c++11-narrowing` |
 | GNU `std::string`/iostream symbols undefined (98) | engine built against Apple's GCC 4.2 libstdc++ | GCC 16 `libstdc++.a` without `libsupc++` members, retagged (`tools/make_gnustdcxx.sh`); `ios/Shim/GnuBridge.mm`, `GnuRuntime.cpp` |
 | "linking in object file built for 'iOS'" | 175 engine objects carry `LC_VERSION_MIN_IPHONEOS` | removed in place for the Simulator archive (`tools/arsim.py`) |
 | "File's Build target is: 13" | data says Android | header target → 9 (`tools/retarget_data.py`) |
@@ -60,5 +78,4 @@ Unattended testing (developer only, inactive unless set):
 ## Open
 
 - Audio by ear; a full level to the end; other movies.
-- iPhone 17 device build, install and performance (M6). The Simulator's 1× rendering is Simulator-only.
 - "No receiver of signal OnSignal" warnings from the game's own GUI (also present on Android, harmless so far).

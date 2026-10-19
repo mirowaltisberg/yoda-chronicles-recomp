@@ -1,0 +1,8 @@
+502a
+#if TARGET_OS_SIMULATOR
+	// Yoda port: the Simulator renders OpenGL ES in software; native 3x makes every frame take seconds.
+	return 1.0f;
+#endif
+.
+w
+q

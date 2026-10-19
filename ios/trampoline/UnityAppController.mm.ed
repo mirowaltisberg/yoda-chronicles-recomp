@@ -1,0 +1,61 @@
+113c
+
+	[_yodaRoot addChildViewController:vc];
+	_rootView.frame = _yodaRoot.view.bounds;
+	_rootView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+	[_yodaRoot.view addSubview:_rootView];
+	[vc didMoveToParentViewController:_yodaRoot];
+	_yodaRoot->content = vc;
+
+	if(@available(iOS 16.0, *))
+		[_yodaRoot setNeedsUpdateOfSupportedInterfaceOrientations];
+.
+110c
+	if(_yodaRoot == nil)
+	{
+		_yodaRoot = [[YodaRootContainer alloc] init];
+		_yodaRoot.view.backgroundColor = [UIColor blackColor];
+		_window.rootViewController = _yodaRoot;
+	}
+
+	UIViewController* old = _yodaRoot->content;
+	if(old)
+	{
+		[old willMoveToParentViewController:nil];
+		[old removeFromParentViewController];
+	}
+	[_rootView removeFromSuperview];
+	if(_rootController != vc)
+		_rootController.view = nil;
+.
+107a
+
+.
+70a
+// Yoda port: iOS 26+ runs a presentation transition whenever a window's root controller is replaced,
+// and that crashes with Unity's way of moving its one view between orientation-locked controllers.
+// The window gets one permanent root (YodaRootContainer); Unity's controller for the current orientation
+// becomes its child, and the container reports the child's orientation mask to UIKit.
+@interface YodaRootContainer : UIViewController
+{
+@public
+	UIViewController* content;
+}
+@end
+
+@implementation YodaRootContainer
+- (UIInterfaceOrientationMask)supportedInterfaceOrientations
+{
+	return content ? [content supportedInterfaceOrientations] : UIInterfaceOrientationMaskLandscape;
+}
+- (BOOL)shouldAutorotate					{ return content ? [content shouldAutorotate] : YES; }
+- (BOOL)prefersStatusBarHidden				{ return YES; }
+- (BOOL)prefersHomeIndicatorAutoHidden		{ return YES; }
+- (UIRectEdge)preferredScreenEdgesDeferringSystemGestures { return UIRectEdgeAll; }
+@end
+
+static YodaRootContainer* _yodaRoot = nil;
+
+.
+w
+q

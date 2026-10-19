@@ -1,0 +1,24 @@
+3,127c
+bool UnityAD_BannerTypeAvailable(int type) { return false; }
+void* UnityAD_CreateBanner(int type, int layout) { return NULL; }
+void UnityAD_DestroyBanner(void* target) {  }
+void UnityAD_ShowBanner(void* target, bool show) {  }
+void UnityAD_MoveBanner(void* target, float , float y_) {  }
+void UnityAD_BannerPosition(void* target, float* x, float* y) {  }
+void UnityAD_BannerSize(void* target, float* w, float* h) {  }
+void UnityAD_LayoutBanner(void* target, int layout) {  }
+bool UnityAD_BannerAdLoaded(void* target) { return false; }
+bool UnityAD_BannerAdVisible(void* target) { return false; }
+bool UnityAD_InterstitialAvailable() { return false; }
+void* UnityAD_CreateInterstitial(bool autoReload) { return NULL; }
+void UnityAD_DestroyInterstitial(void* target) {  }
+void UnityAD_ShowInterstitial(void* target) {  }
+void UnityAD_ReloadInterstitial(void* target) {  }
+bool UnityAD_InterstitialAdLoaded(void* target) { return false; }
+.
+1c
+// iAd was removed from the iOS SDK (iOS 15). The engine still calls these; there are never any ads.
+#include <cstddef>
+.
+w
+q

@@ -2,7 +2,7 @@
 # Assembles build/xcode, the equivalent of the Xcode project Unity 4.6.6's editor exports for an iOS
 # IL2CPP build, from the extracted installer and this repository:
 #
-#   Classes/            Unity's Trampoline sources, pristine copy + ios/trampoline.patch
+#   Classes/            Unity's Trampoline sources, pristine copy + ios/trampoline/*.ed (our changes only)
 #   Classes/Register*   the files the editor generates (all engine classes registered, i.e. no stripping)
 #   Libraries/          libil2cpp headers (engine and GNU libstdc++ variants live in build/engine)
 #
@@ -25,10 +25,29 @@ for p in iossim ios; do [ -f "$E/libgnustdcxx-$p.a" ] || "$ROOT/tools/make_gnust
 rm -rf "$X/Classes" "$X/Libraries"
 mkdir -p "$X/Libraries"
 cp -R "$IOS/Trampoline/Classes" "$X/Classes"
-if [ -s "$ROOT/ios/trampoline.patch" ]; then
-    (cd "$X" && patch -s -p1 < "$ROOT/ios/trampoline.patch")
+if [ -s "$ROOT/ios/trampoline/MANIFEST" ]; then
+    # ed scripts from tools/save_trampoline_patch.sh; each applies only to the exact Unity 4.6.6 original
+    while read -r sha f; do
+        actual=$(shasum -a 256 "$X/Classes/$f" | cut -d' ' -f1)
+        [ "$actual" = "$sha" ] || { echo "$f is not Unity 4.6.6's original (sha256 $actual)"; exit 1; }
+        ed -s "$X/Classes/$f" < "$ROOT/ios/trampoline/$f.ed"
+    done < "$ROOT/ios/trampoline/MANIFEST"
 fi
 cp -R "$IOS/il2cpp/libil2cpp" "$X/Libraries/libil2cpp"
+
+# App icon: the original App Store artwork from the user's IPA (512x512, 2013), upscaled to the single
+# 1024x1024 icon iOS wants now. Generated here, never committed.
+ICON_SRC="$ROOT/input/x/ipa/iTunesArtwork"
+ICONSET="$X/Assets.xcassets/AppIcon.appiconset"
+rm -rf "$X/Assets.xcassets" && mkdir -p "$ICONSET"
+printf '{"info":{"author":"xcode","version":1}}\n' > "$X/Assets.xcassets/Contents.json"
+if [ -f "$ICON_SRC" ]; then
+    "$ROOT/tools/.venv/bin/python" -I -c "import sys; from PIL import Image; Image.open(sys.argv[1]).convert('RGB').resize((1024, 1024), Image.LANCZOS).save(sys.argv[2])" \
+        "$ICON_SRC" "$ICONSET/AppIcon-1024.png"
+    printf '{"images":[{"filename":"AppIcon-1024.png","idiom":"universal","platform":"ios","size":"1024x1024"}],"info":{"author":"xcode","version":1}}\n' > "$ICONSET/Contents.json"
+else
+    printf '{"images":[{"idiom":"universal","platform":"ios","size":"1024x1024"}],"info":{"author":"xcode","version":1}}\n' > "$ICONSET/Contents.json"
+fi
 
 # RegisterClasses.cpp: every class the engine library contains (the editor lists the used ones when stripping)
 {

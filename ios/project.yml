@@ -41,6 +41,7 @@ settings:
     INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
     INFOPLIST_KEY_CFBundleDisplayName: "Yoda Chronicles"
     INFOPLIST_KEY_UIViewControllerBasedStatusBarAppearance: NO
+    ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
 targetTemplates:
   YodaApp:
     type: application
@@ -75,6 +76,7 @@ targetTemplates:
       - path: ../build/Data
         type: folder
         buildPhase: resources
+      - path: ../build/xcode/Assets.xcassets
     dependencies:
       - sdk: UIKit.framework
       - sdk: Foundation.framework
