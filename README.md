@@ -7,7 +7,10 @@ player of the same engine generation, with the C# translated ahead of time to na
 Sister project of `ninjago-recomp` (same goal, different engine: Ninjago is a native C++ engine, Yoda Chronicles
 is a Unity/Mono game).
 
-**No game code or data lives in this repository.** Put your own copies in `input/` (git-ignored).
+**No game code or data lives in this repository**, and no Unity installer files: those are unpacked into
+`build/` from Unity's official download. The one exception is `ios/trampoline.patch`, which carries
+context lines of Unity's Trampoline (the Xcode app shell Unity ships as source). Put your own copies of
+the game in `input/` (git-ignored).
 Anything generated from them (translated code, converted data, builds) goes to `gen/` or `build/`
 (git-ignored) and is never committed.
 
