@@ -119,8 +119,9 @@ The technical report covers every step, with the problems found on the way and t
 
 ## Legal
 
-This repository contains only original tooling. No game code, game data or Unity code is included, and nothing
-generated from them is committed: you need your own copy of the game and Unity's installer. This is a personal
+The code in this repository is original tooling. No game code, game data or Unity code is included, and nothing
+generated from them is committed: you need your own copy of the game and Unity's installer. The screenshots and the
+app icon shown on this page are the rights holders' artwork, shown for illustration. This is a personal
 preservation project and is not affiliated with or endorsed by the LEGO Group, Lucasfilm, Disney, Warner Bros. Games,
 TT Games or Unity Technologies. LEGO is a trademark of the LEGO Group, Star Wars is a trademark of Lucasfilm Ltd.,
 and Unity is a trademark of Unity Technologies.

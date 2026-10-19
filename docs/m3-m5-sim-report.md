@@ -33,7 +33,7 @@ Yoda and his squad, the camera follows, timer and stud counter run.
 | Gameplay | Coruscant mission 1 played to the **Win** screen (unit build screen and map used on the way); mission 2 started |
 | Errors | none in the console: no exceptions, no memory warnings |
 | Screen edges | checked against the iPhone 17 display mask (`simctl io screenshot --mask=black`, now used by `watch_sim.sh`): HUD (minimap, timer, pause, studs) and all menu buttons sit inside the rounded corners; the Dynamic Island only covers scenery. No layout change needed |
-| App icon | the original App Store artwork from the user's IPA, upscaled to 1024×1024 at build time (`make_xcode.sh`), not committed |
+| App icon | the original App Store artwork from the user's IPA, upscaled to 1024×1024 at build time (`make_xcode.sh`); the app's icon asset is not committed (the README shows a small copy, `docs/media/icon.png`, for illustration) |
 
 Notes: launching from the Mac needs the phone unlocked (`run_phone.sh` retries). The first install once
 dropped with "Connection invalid" and succeeded on retry.
